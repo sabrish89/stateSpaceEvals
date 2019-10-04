@@ -78,11 +78,11 @@ class dynProgs(object):
         print("Took", math.ceil(time.time() - time_S), "seconds!!!")
         return memo[(tuple(list(range(self.size))), 0)], pathGen(P, self.size)
 
-inst = dynProgs("ulysses22")
+inst = dynProgs("gr17")
 
-path = [1,14,13,12,7,6,15,5,11,9,10,19,20,21,16,3,2,17,22,4,18,8]
+#path = [8, 14, 13, 12, 7, 6, 15, 5, 11, 9, 10, 19, 20, 21, 16, 3, 2, 17, 4, 18, 22, 1]
 G = inst.getCost()
-print(sum(G[path[i]-1,path[(i+1)%22]-1] for i in range(len(path))))
-#cost,path = inst.dynProgSol()
-#print(cost,path)
+#print(sum(G[i,i-1] for i in range(1,len(path))))
+cost,path = inst.dynProgSol()
+print(cost,path)
 #3135 s
