@@ -109,17 +109,24 @@ class dynProgs(object):
                         mark[0] = i
             return dickt[mark[0]] if mark[0] else None
 
-        def makePI(lp,k,arrayNearestNeighbor):
+        def makePI(k,arrayNearestNeighbor):
             '''
-            Get relaxed PI(p)
+            Get relaxed PI(p)\{i}
             '''
             candidates = set({})
             for i in range(k+1,len(arrayNearestNeighbor)):
                 if candidates.__len__() > 0:
-                    candidates.intersection(arrayNearestNeighbor[i])
+                    candidates = candidates.intersection(set(arrayNearestNeighbor[i]))
                 else:
-                    candidates.union(arrayNearestNeighbor[i])
-            return candidates.union(lp)
+                    candidates = candidates.union(set(arrayNearestNeighbor[i]))
+            return list(candidates)
+
+        def choiceGen(S, k):
+            '''
+            Get all subsets of set S of size k
+            '''
+            for x in combinations(S, k):
+                yield x
 
         time_S = time.time()
         memo = {}
@@ -128,22 +135,25 @@ class dynProgs(object):
         G = G + np.where(np.eye(self.size) > 0, np.inf, 0)
         N = nearestNeighbors(self)
         for i in range(self.size):
-            memo[(tuple({i}), i)] = G[0, i]
-            P[(tuple({i}), i)] = 0
+            memo[(tuple({i}),1,i)] = G[0,i]
         for k in tqdm(range(2, self.size + 1)):
-            for end in range(self.size):
-                if u != w:
-                    S = list(set(aset).difference({aset[w]}))
-                    S.sort()
-                    z = memo[(tuple(S), aset[u])] + G[aset[u], aset[w]]
-                    if z < memo[(tuple(aset), aset[w])]:
-                        memo[(tuple(aset), aset[w])] = z
-                        P[(tuple(aset), aset[w])] = aset[u]
-
-
+            for w in range(self.size):
+                PI = makePI(k, N)
+                memo[(tuple(PI+[w]), k, w)] = np.inf
+                for aset in choiceGen(PI, k):
+                    aset = list(set(aset).union({w}))
+                    for u in range(len(aset)):
+                        if aset[u] != w:
+                            S = list(set(aset).difference({w}).difference({aset[u]}))
+                            S.sort()
+                            z = memo[(tuple(S),k-1, aset[u])] + G[w,aset[u]]
+                            if z < memo[(tuple(PI+[w]),k, w)]:
+                                memo[(tuple(PI+[w]),k, w)] = z
+        print("Took", math.ceil(time.time() - time_S), "seconds!!!")
+        return memo[(tuple(list(range(self.size))),self.size, 0)]
 
 inst = dynProgs("burma14")
 
 G = inst.getCost()
-cost,path = inst.dynProgSol()
-print(cost,path)
+cost = inst.dynProgWithDng(delta=4)
+print(cost)
