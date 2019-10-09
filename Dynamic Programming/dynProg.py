@@ -78,11 +78,72 @@ class dynProgs(object):
         print("Took", math.ceil(time.time() - time_S), "seconds!!!")
         return memo[(tuple(list(range(self.size))), 0)], pathGen(P, self.size)
 
-inst = dynProgs("gr17")
+    def dynProgWithDng(self,delta=6):
+        '''
+        Dng-relaxed state space
+        Paper requires delta = 8,10 for relaxation to be tight
+        '''
 
-#path = [8, 14, 13, 12, 7, 6, 15, 5, 11, 9, 10, 19, 20, 21, 16, 3, 2, 17, 4, 18, 22, 1]
+        def nearestNeighbors(self,d=delta):
+            '''
+            ~ n^2 * log(n)
+            '''
+            C = self.getCost()
+            return [np.argsort(C[i]).tolist()[:d+1] for i in range(C.shape[0])]
+
+        def smallestSubtour(tour):
+            '''
+            returns smallest subtour found with start,end indices and vertex
+            :param tour: list
+            :return: dic {i:[start,end]}, -1
+            TODO: Linear, optimizable?
+            '''
+            dickt = {}
+            mark = [None,np.inf]
+            for i in range(tour.__len__()):
+                if tour[i] not in dickt.keys():
+                    dickt[tour[i]] = [i]
+                else:
+                    dickt[tour[i]].append(i)
+                    if dickt[tour[i]][1] - dickt[tour[i]][0] < mark[1]:
+                        mark[0] = i
+            return dickt[mark[0]] if mark[0] else None
+
+        def makePI(lp,k,arrayNearestNeighbor):
+            '''
+            Get relaxed PI(p)
+            '''
+            candidates = set({})
+            for i in range(k+1,len(arrayNearestNeighbor)):
+                if candidates.__len__() > 0:
+                    candidates.intersection(arrayNearestNeighbor[i])
+                else:
+                    candidates.union(arrayNearestNeighbor[i])
+            return candidates.union(lp)
+
+        time_S = time.time()
+        memo = {}
+        P = {}
+        G = self.getCost()
+        G = G + np.where(np.eye(self.size) > 0, np.inf, 0)
+        N = nearestNeighbors(self)
+        for i in range(self.size):
+            memo[(tuple({i}), i)] = G[0, i]
+            P[(tuple({i}), i)] = 0
+        for k in tqdm(range(2, self.size + 1)):
+            for end in range(self.size):
+                if u != w:
+                    S = list(set(aset).difference({aset[w]}))
+                    S.sort()
+                    z = memo[(tuple(S), aset[u])] + G[aset[u], aset[w]]
+                    if z < memo[(tuple(aset), aset[w])]:
+                        memo[(tuple(aset), aset[w])] = z
+                        P[(tuple(aset), aset[w])] = aset[u]
+
+
+
+inst = dynProgs("burma14")
+
 G = inst.getCost()
-#print(sum(G[i,i-1] for i in range(1,len(path))))
 cost,path = inst.dynProgSol()
 print(cost,path)
-#3135 s

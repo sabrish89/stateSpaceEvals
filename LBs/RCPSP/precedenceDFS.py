@@ -33,8 +33,3 @@ def getTree(t,prec,successors,duration,time):
             getTree(t+duration[job],prec,prec[job],duration,time)
         else:
             continue
-
-    #CLEAN UP - linear scan O(n)
-    for key in time.keys():
-        if not time[key]:
-            time.pop(key)
