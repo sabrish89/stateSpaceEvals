@@ -119,7 +119,7 @@ class dynProgs(object):
                     candidates = candidates.intersection(set(arrayNearestNeighbor[i]))
                 else:
                     candidates = candidates.union(set(arrayNearestNeighbor[i]))
-            return list(candidates)
+            return candidates
 
         def choiceGen(S, k):
             '''
@@ -128,29 +128,29 @@ class dynProgs(object):
             for x in combinations(S, k):
                 yield x
 
+        def functionEval(NG,k,i,memo,G):
+            '''
+            Recursor
+            :param NG: NG relaxed path, set
+            :param k: path length, int
+            :param i: ender city, int
+            '''
+
+            if k > 1:
+                return min([functionEval(NG.difference(i),k-1,j,memo,G) + G[i,j] for j in list(NG)])
+            else:
+                return G[NG[0],i]
+
         time_S = time.time()
         memo = {}
-        P = {}
         G = self.getCost()
         G = G + np.where(np.eye(self.size) > 0, np.inf, 0)
         N = nearestNeighbors(self)
+        NG = set(range(self.size))
         for i in range(self.size):
-            memo[(tuple({i}),1,i)] = G[0,i]
-        for k in tqdm(range(2, self.size + 1)):
-            for w in range(self.size):
-                PI = makePI(k, N)
-                memo[(tuple(PI+[w]), k, w)] = np.inf
-                for aset in choiceGen(PI, k):
-                    aset = list(set(aset).union({w}))
-                    for u in range(len(aset)):
-                        if aset[u] != w:
-                            S = list(set(aset).difference({w}).difference({aset[u]}))
-                            S.sort()
-                            z = memo[(tuple(S),k-1, aset[u])] + G[w,aset[u]]
-                            if z < memo[(tuple(PI+[w]),k, w)]:
-                                memo[(tuple(PI+[w]),k, w)] = z
-        print("Took", math.ceil(time.time() - time_S), "seconds!!!")
-        return memo[(tuple(list(range(self.size))),self.size, 0)]
+            memo[(NG,self.size,i)] = sum(functionEval(NG,self.size,i,memo,G))
+        print(memo)
+
 
 inst = dynProgs("burma14")
 
