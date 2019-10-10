@@ -78,6 +78,11 @@ class dynProgs(object):
         print("Took", math.ceil(time.time() - time_S), "seconds!!!")
         return memo[(tuple(list(range(self.size))), 0)], pathGen(P, self.size)
 
+    def dynProgRelx(self):
+        '''
+        Christofides Relaxation Procedure
+        '''
+
     def dynProgWithDng(self,delta=6):
         '''
         Dng-relaxed state space
