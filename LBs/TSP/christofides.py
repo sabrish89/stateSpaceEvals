@@ -45,7 +45,7 @@ def dynProgRelx(dynProgs):
                         memo[(k, w)] = z
     return getBound(memo,dynProgs.size,G,time_S)
 
-instLb = dynProgs("kroB150")
+instLb = dynProgs("gr120")
 lb = dynProgRelx(instLb)
 print(instLb.name,":Lower Bound:",lb)
 
