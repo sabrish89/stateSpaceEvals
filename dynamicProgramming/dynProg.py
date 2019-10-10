@@ -172,6 +172,6 @@ class solver(object):
         print(memo)
 
 '''
-solvInst = solver(dynProgs("gr17"))
+solvInst = solver(dynProgs("gr21"))
 print(solvInst.dynProgSol())
 '''
