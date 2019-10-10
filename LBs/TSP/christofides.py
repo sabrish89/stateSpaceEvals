@@ -4,7 +4,6 @@ import math
 import time
 from tqdm import tqdm
 from dynamicProgramming.dynProg import dynProgs
-from tsplibInstanceReader import produce_matrix
 
 def dynProgRelx(dynProgs):
     '''
