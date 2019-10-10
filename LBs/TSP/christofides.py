@@ -1,5 +1,4 @@
 import numpy as np
-from itertools import combinations
 import math
 import time
 from tqdm import tqdm
@@ -8,9 +7,27 @@ from dynamicProgramming.dynProg import dynProgs
 def dynProgRelx(dynProgs):
     '''
     Christofides' State-Space Relaxation Procedure - |V|
-    bottom-up recursion
+    TODO: DFS scheme needed for "valid" state space reduction
     Returns a LB
     '''
+
+    def getBound(memo,size,G,time_S):
+        '''
+        Makeshift validity check
+        :param memo: dict for relaxed space
+        :return: "valid" Lower bound
+        '''
+
+        path = {0:0}
+        if size > 1 and memo.keys():
+            for k in range(1,size):
+                cost = np.inf
+                for n in range(1,size):
+                    if memo[(k,n)] < cost and n not in path.values():
+                        path[k] = n
+                        cost = memo[k,n]
+            print("Took", math.ceil(time.time() - time_S), "seconds!!!")
+        return cost+G[path[size-1],0],[path[i]+1 for i in range(size)]
 
     time_S = time.time()
     memo = {}
@@ -26,10 +43,27 @@ def dynProgRelx(dynProgs):
                     z = memo[(k - 1, u)] + G[u, w]
                     if z < memo[(k, w)]:
                         memo[(k, w)] = z
-    print("Took", math.ceil(time.time() - time_S), "seconds!!!")
-    return max([memo[(dynProgs.size - 1, i)] + G[i, 0] for i in range(1, dynProgs.size)])
+    return getBound(memo,dynProgs.size,G,time_S)
 
-inst = dynProgs("kroA150")
-G = inst.getCost()
-lb = dynProgRelx(inst)
-print("Lower Bound:",lb)
+instLb = dynProgs("kroB150")
+lb = dynProgRelx(instLb)
+print(instLb.name,":Lower Bound:",lb)
+
+'''
+    def recursorDFS(G,V,k,i):
+        ''''''
+        At a depth k return min
+        :param G: cost graph
+        :param V: permissible vertices
+        :param k: current |V| needed - recursive depth
+        :param i: current path end
+        ''''''
+        if k > 1:
+            return min([recursorDFS(G,V.difference({i}),k-1,j) + G[i,j] for j in list(V)])
+        else:
+            return G[0,i]
+
+    G = dynProgs.getCost()
+    V = set(range(1,dynProgs.size))
+    return max([(recursorDFS(G,V,dynProgs.size-1,k)) for k in tqdm(list(range(1,dynProgs.size)))])
+'''
