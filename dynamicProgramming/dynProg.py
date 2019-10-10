@@ -49,11 +49,13 @@ class dynProgs(object):
                 if path.__len__() == 0:
                     path.append(P[(tuple(list(range(N))), 0)])
                 else:
-                    S = [x for x in list(range(N)) if x not in path[:-1]]
+                    S = [x for x in list(range(1,N)) if x not in path[:-1]]
                     S.sort()
-                    path.append(P[(tuple(S), path[-1])])
-            path.remove(0)
-            return [p + 1 for p in path]
+                    if S:
+                        path.append(P[(tuple(S), path[-1])])
+                    else:
+                        path.insert(0,0)
+            return [p+1 for p in path]
 
         time_S = time.time()
         memo = {}
@@ -64,24 +66,31 @@ class dynProgs(object):
             memo[(tuple({i}), i)] = G[0, i]
             P[(tuple({i}), i)] = 0
         for k in tqdm(range(2, self.size + 1)):
-            for aset in choiceGen(list(range(self.size)), k):
-                for w in range(len(aset)):
-                    memo[tuple(aset), aset[w]] = np.inf
-                    for u in range(len(aset)):
-                        if u != w:
-                            S = list(set(aset).difference({aset[w]}))
-                            S.sort()
-                            z = memo[(tuple(S), aset[u])] + G[aset[u], aset[w]]
-                            if z < memo[(tuple(aset), aset[w])]:
-                                memo[(tuple(aset), aset[w])] = z
-                                P[(tuple(aset), aset[w])] = aset[u]
+            if k < self.size:
+                for aset in choiceGen(list(range(1,self.size)), k):
+                    for w in range(len(aset)):
+                        memo[tuple(aset), aset[w]] = np.inf
+                        for u in range(len(aset)):
+                            if u != w:
+                                S = list(set(aset).difference({aset[w]}))
+                                S.sort()
+                                z = memo[(tuple(S), aset[u])] + G[aset[u], aset[w]]
+                                if z < memo[(tuple(aset), aset[w])]:
+                                    memo[(tuple(aset), aset[w])] = z
+                                    P[(tuple(aset), aset[w])] = aset[u]
+            else:
+                aset = list(range(self.size))
+                memo[tuple(aset), 0] = np.inf
+                for u in range(len(aset)):
+                    if u != 0:
+                        S = list(set(aset).difference({0}))
+                        S.sort()
+                        z = memo[(tuple(S), aset[u])] + G[aset[u], 0]
+                        if z < memo[(tuple(aset), 0)]:
+                            memo[(tuple(aset), 0)] = z
+                            P[(tuple(aset), 0)] = aset[u]
         print("Took", math.ceil(time.time() - time_S), "seconds!!!")
         return memo[(tuple(list(range(self.size))), 0)], pathGen(P, self.size)
-
-    def dynProgRelx(self):
-        '''
-        Christofides Relaxation Procedure
-        '''
 
     def dynProgWithDng(self,delta=6):
         '''
@@ -157,8 +166,6 @@ class dynProgs(object):
         print(memo)
 
 
-inst = dynProgs("burma14")
-
+inst = dynProgs("ulysses22")
 G = inst.getCost()
-cost = inst.dynProgWithDng(delta=4)
-print(cost)
+print(inst.dynProgSol())

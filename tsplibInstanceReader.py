@@ -165,7 +165,10 @@ def produce_matrix(filename):
     if os.getcwd().split("\\")[-1] == "stateSpaceEvals":
         filename = "./TSPLIB/" + filename + "/" + filename #toAdd
     else:
-        filename = os.path.dirname(os.getcwd()) + "\\TSPLIB\\" + filename + "\\" + filename
+        #filename = os.path.dirname(os.getcwd()) + "\\TSPLIB\\" + filename + "\\" + filename
+        filename = "\\".join(
+            [os.getcwd().split("\\")[idx] for idx in range(os.getcwd().split("\\").index("stateSpaceEvals") + 1)] + \
+                   ["TSPLIB"] + [filename]*2)
     f = open(filename)
     line = f.readline()
     while line.find("DIMENSION") == -1:
