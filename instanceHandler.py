@@ -107,3 +107,48 @@ class dynProgsPSP(object):
                     continue
                 t += 1
         return schedule
+
+'''
+    def bfsSchedule(self):
+        ''''''
+        Queue
+        SPF with additional costs heuristic
+        ''''''
+
+        def cost(i,j,self,Q):
+            ''''''
+            :param i: last scheduled job
+            :param j: prospective new job
+            :param self: psp instance
+            :return: custom cost
+            ''''''
+
+            def checkSeq(j, Q, self):
+                ''''''
+                :param j: job
+                :param schedule: current solution
+                :param self: psp instance
+                ''''''
+
+                def getPredecessors(j, self):
+                    ''''''
+                    :param j: job
+                    :param self: psp instance
+                    ''''''
+                    return [key for key in self._successors.keys() if j in self._successors[key]]
+
+                pred = getPredecessors(j, self)
+                for predecessor in pred:
+                    if predecessor not in Q:
+                        return False
+                return True
+
+            return sum([self._processingTime[i],self._processingTime[j]]+[0 if checkSeq(j,Q,self) else np.inf])
+
+        Q = []
+        for key in self._successors.keys():
+
+
+inst = rcpspInstance("j101_1")
+print(inst.getSchedule())
+'''
