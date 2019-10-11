@@ -1,4 +1,12 @@
+import os
+
 def readjslibfile(filename="j301_1"):
+    if os.getcwd().split("\\")[-1] == "stateSpaceEvals":
+        filename = "./PSPLIB/" + filename + "/" + filename #toAdd
+    else:
+        filename = "\\".join(
+            [os.getcwd().split("\\")[idx] for idx in range(os.getcwd().split("\\").index("stateSpaceEvals") + 1)] + \
+                   ["PSPLIB"] + [filename])
     big_num = 10000
     file = open(filename + ".sm", "r")
     precedence_line = big_num

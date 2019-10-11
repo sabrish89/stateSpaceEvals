@@ -2,7 +2,7 @@ import numpy as np
 import math
 import time
 from tqdm import tqdm
-from dynamicProgramming.dynProg import dynProgs
+from instanceHandler import dynProgsTSP as dynProgs
 
 def dynProgRelx(dynProgs):
     '''

@@ -3,27 +3,7 @@ from itertools import combinations
 import math
 import time
 from tqdm import tqdm
-from tsplibInstanceReader import produce_matrix
-
-class dynProgs(object):
-
-    def __init__(self,instance_name):
-        '''
-        produce an instance with the data for cost matrix
-        '''
-
-        self.name = instance_name
-        self.size = 0
-
-    def getCost(self):
-        '''
-        getter for cost
-        :return: cost matrix
-        '''
-
-        costMatrix = produce_matrix(self.name)
-        self.size = costMatrix.shape[0]
-        return costMatrix
+from instanceHandler import dynProgsTSP as dynProgs
 
 class solver(object):
 
@@ -172,6 +152,6 @@ class solver(object):
         print(memo)
 
 '''
-solvInst = solver(dynProgs("gr21"))
+solvInst = solver(dynProgs("gr17"))
 print(solvInst.dynProgSol())
 '''
