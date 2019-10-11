@@ -61,5 +61,6 @@ def getPrecedenceLB(dynProgs):
     print("Took",math.ceil(t.time() - time_S),"seconds!!!")
     return max(time.keys())
 
-inst = dynProgs("j3029_4")
+inst = dynProgs("j301_1")
+print(inst.basicFeasible())
 print(inst._name,":Lower Bound:",getPrecedenceLB(inst))
