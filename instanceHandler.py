@@ -64,7 +64,7 @@ class dynProgsPSP(object):
 
             pred = getPredecessors(j, self)
             for predecessor in pred:
-                if schedule[predecessor] + self._processingTime[predecessor] > schedule[j]:
+                if schedule[predecessor] + self._processingTime[predecessor] - 1 > schedule[j]:
                     return False
             return True
 
@@ -88,13 +88,13 @@ class dynProgsPSP(object):
             timeStamp = schedule[j]
             jobs = runningJobs(timeStamp, schedule, self)
             for r in range(max(self._resourceCap.__len__(), 1)):
-                if sum([self._resourceReq[compJob][r] for compJob in jobs] +
+                if sum([self._resourceReq[compJob][r] for compJob in jobs if not compJob == job] +
                        [self._resourceReq[job][r]]) > self._resourceCap[r]:
                     return False
             return True
 
         t = 0
-        schedule = {j: np.inf for j in range(1, self._resourceReq.__len__())}
+        schedule = {j: np.inf for j in range(1, self._resourceReq.__len__()+1)}
         while np.inf in schedule.values():
             for job in schedule.keys():
                 if schedule[job] > t:
