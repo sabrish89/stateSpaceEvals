@@ -132,5 +132,5 @@ def SAHeuristic(dynProgs, parameters):
         T = parameters[3] * T
     return x_b, t_b
 
-inst = dynProgs("j301_5")
+inst = dynProgs("j601_5")
 print(SAHeuristic(inst,[1000,1,60,0.25,5])) #[N_0,h,T_max,a,S,C]
