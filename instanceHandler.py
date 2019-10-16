@@ -64,7 +64,7 @@ class dynProgsPSP(object):
 
             pred = getPredecessors(j, self)
             for predecessor in pred:
-                if schedule[predecessor] + self._processingTime[predecessor] - 1 > schedule[j]:
+                if schedule[predecessor] + self._processingTime[predecessor] > schedule[j]:
                     return False
             return True
 
