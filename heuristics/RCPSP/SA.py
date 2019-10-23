@@ -96,6 +96,7 @@ def SAHeuristic(dynProgs, parameters):
         return l
 
     lb = getPrecedenceLB(dynProgs)
+    print("Lower Bound:",lb)
     schedule = dynProgs.basicFeasible()
     inv = {}
     for key in schedule.keys():
@@ -125,12 +126,12 @@ def SAHeuristic(dynProgs, parameters):
                     x_b = x_curr
                     t_b = t_curr
                 if t_curr[-1] == lb:
-                    return x_curr
+                    return x_curr, t_curr
             elif np.exp(delta * -1 / T) > np.random.uniform(0, 1):
                 x_curr = x_t
                 t_curr = t_t
         T = parameters[3] * T
     return x_b, t_b
 
-inst = dynProgs("j9010_5")
+inst = dynProgs("j3027_7")
 print(SAHeuristic(inst,[1000,1,60,0.25,5])) #[N_0,h,T_max,a,S,C]
