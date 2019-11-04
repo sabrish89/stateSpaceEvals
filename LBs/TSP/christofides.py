@@ -45,25 +45,6 @@ def dynProgRelx(dynProgs):
                         memo[(k, w)] = z
     return getBound(memo,dynProgs.size,G,time_S)
 
-instLb = dynProgs("gr120")
+instLb = dynProgs("a280")
 lb = dynProgRelx(instLb)
 print(instLb.name,":Lower Bound:",lb)
-
-'''
-    def recursorDFS(G,V,k,i):
-        ''''''
-        At a depth k return min
-        :param G: cost graph
-        :param V: permissible vertices
-        :param k: current |V| needed - recursive depth
-        :param i: current path end
-        ''''''
-        if k > 1:
-            return min([recursorDFS(G,V.difference({i}),k-1,j) + G[i,j] for j in list(V)])
-        else:
-            return G[0,i]
-
-    G = dynProgs.getCost()
-    V = set(range(1,dynProgs.size))
-    return max([(recursorDFS(G,V,dynProgs.size-1,k)) for k in tqdm(list(range(1,dynProgs.size)))])
-'''

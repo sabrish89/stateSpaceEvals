@@ -151,7 +151,5 @@ class solver(object):
             memo[(NG,self.instance.size,i)] = sum(functionEval(NG,self.instance.size,i,memo,G))
         print(memo)
 
-'''
 solvInst = solver(dynProgs("gr17"))
 print(solvInst.dynProgSol())
-'''

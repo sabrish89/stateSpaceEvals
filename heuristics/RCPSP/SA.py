@@ -32,18 +32,14 @@ def SAHeuristic(dynProgs, parameters):
             t = [0]
             for job in x:
                 if job > 1:
-                    T = max(t if t.__len__() > 0 else [0])
+                    #T = max(t if t.__len__() > 0 else [0])
+                    T = 0
                     predecessors = [key for key in self._successors.keys() if job in self._successors[key]]
                     while True:
-                        if all(t.__len__() > x.index(pjob) for pjob in predecessors):
-                            if max([t[x.index(pjob)] + self._processingTime[pjob] for pjob in x[:t.__len__()]
-                                    for pjob in predecessors], default=T) <= T:
-                                running = [job for job in x[:t.__len__()] if t[x.index(job)] < T + 1
-                                           and t[x.index(job)] + self._processingTime[job] > T - 1]
-                                resCheckRes = [
-                                    sum([self._resourceReq[compJob][r] for compJob in running if not compJob == job] +
-                                        [self._resourceReq[job][r]]) <= self._resourceCap[r]
-                                    for r in range(self._resourceCap.__len__())]
+                        if all([t.__len__() > x.index(pjob) for pjob in predecessors]):
+                            if max([t[x.index(pjob)] + self._processingTime[pjob] for pjob in x[:t.__len__()] if pjob in predecessors], default=T) <= T:
+                                running = [job for job in x[:t.__len__()] if t[x.index(job)] < T + 1 and t[x.index(job)] + self._processingTime[job] > T - 1]
+                                resCheckRes = [sum([self._resourceReq[compJob][r] for compJob in running if not compJob == job] + [self._resourceReq[job][r]]) <= self._resourceCap[r] for r in range(self._resourceCap.__len__())]
                                 if resCheckRes == [True] * resCheckRes.__len__():
                                     t.append(T)
                                     break
@@ -95,6 +91,19 @@ def SAHeuristic(dynProgs, parameters):
                                 break
         return l
 
+    def explicitMatrixCheck(x, t, pspInstance):
+        '''
+        Check generated schedule as per matrix mode
+        '''
+
+        timeMatrix = np.array([[1 if time >= t[x.index(job)] and time <= t[x.index(job)] + max(pspInstance._processingTime[job]-1,0)
+                       else 0 for time in range(max(t)+1)] for job in x])
+        for resource in range(pspInstance._resourceCap.__len__()):
+            for time in range(max(t)+1):
+                if sum([pspInstance._resourceReq[job][resource] * timeMatrix[job-1][time] for job in x]) > pspInstance._resourceCap[resource]:
+                    return False
+        return True
+
     lb = getPrecedenceLB(dynProgs)
     print("Lower Bound:",lb)
     schedule = dynProgs.basicFeasible()
@@ -130,8 +139,10 @@ def SAHeuristic(dynProgs, parameters):
             elif np.exp(delta * -1 / T) > np.random.uniform(0, 1):
                 x_curr = x_t
                 t_curr = t_t
+        if not explicitMatrixCheck(x_curr,t_curr,dynProgs):
+            print("Violated!!!")
         T = parameters[3] * T
     return x_b, t_b
 
-inst = dynProgs("j3027_7")
-print(SAHeuristic(inst,[1000,1,60,0.25,5])) #[N_0,h,T_max,a,S,C]
+inst = dynProgs("j101_1")
+print(SAHeuristic(inst,[1000,1,60,0.25,1])) #[N_0,h,T_max,a,S,C]
