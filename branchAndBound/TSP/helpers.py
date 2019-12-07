@@ -183,4 +183,4 @@ inst = tsp("burma14")
 parentProblem = minSpan1Tree(inst.getCost())
 childrenProblems = generate(inst.getCost(),parentProblem)
 for child in childrenProblems:
-    print(checkTermination(child[0]))
+    print(checkTermination(child[0]),child)
