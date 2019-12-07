@@ -167,7 +167,21 @@ def generate(G,edgeSet):
         cEdgeSet.append(span1Tree(pivotVertex,G.copy(),inclnSet,exclnSet))
     return cEdgeSet
 
+def checkTermination(edgeSet):
+    '''
+    Check if a cyclic path found
+    :param edgeSet: current subproblem edgeSet
+    :return: True if cycle found and terminate, False otherwise
+             Also the average degree - if that makes sense?!?!?
+    '''
+
+    flattenedEdgeSet = [t for tup in edgeSet for t in tup]
+    vrtxCard = {vrtx: flattenedEdgeSet.count(vrtx) for vrtx in flattenedEdgeSet}
+    return all(value == 2 for value in vrtxCard.values()), sum(vrtxCard.values()) / vrtxCard.keys().__len__()
+
+
 inst = tsp("burma14")
 parentProblem = minSpan1Tree(inst.getCost())
-print(parentProblem)
-print(generate(inst.getCost(),parentProblem))
+childrenProblems = generate(inst.getCost(),parentProblem)
+for child in childrenProblems:
+    print(checkTermination(child[0]))
