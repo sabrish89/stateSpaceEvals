@@ -12,24 +12,102 @@ def kruskalsTree(G,inclnSet=[],exclnSet=[]):
     :return: mst
     '''
 
-    if type(G) == np.ndarray:
-        for edge in inclnSet:
-            G[edge[0], edge[1]] = G[edge[0], edge[1]] = 0
-        for edge in exclnSet: #excln must override incln - design choice
-            G[edge[0], edge[1]] = G[edge[0], edge[1]] = np.inf
+    def kruskalsMst(G):
+        '''
+        Had to write my own god!#@* code to add incln and avoid excln
+        :param G: Graph
+        :return: tree
+        '''
 
-    T = minimum_spanning_tree(G)
-    n_comp, labels = connected_components(T,return_labels = True)
-    if n_comp > 1:
-        print("Kruskal gave connected components!")
-        exit()
-    else: #bild the edgeset
-        mst = T.toarray(int)
-        return [(i,j) for j in range(mst.shape[0]) for i in range(mst.shape[0]) if mst[i,j] > 0]
+        def unionFind(compPath, edge):
+            '''
+            Union-Find Compressed Path rep based cycle detection
+            :param compPath: compressed path
+            :param edge: incumbent edge
+            :return: True if incumbent adds cycle, False otherwise
+            '''
+
+            def find(compPath, vertex):
+                '''
+                naive recursive search
+                :param compPath: compressed path
+                :param vertex: vertex needing representation set
+                :return: representation set : vertex
+                '''
+
+                if compPath[vertex] > 0:
+                    return find(compPath, compPath[vertex])
+                else:
+                    return vertex
+
+            x = find(compPath,edge[0])
+            y = find(compPath,edge[1])
+            if x == y:
+                return True
+            else:
+                compPath[x] = y
+                return False
+
+        def flattenSortArray(G,exclnSet = []):
+            '''
+            A stupid flattensort!
+            :param G: Graph
+            :param exclnSet: edges to exclude from tree
+            :return: flattened and sorted list of edges
+            '''
+            lst = []
+            for i in range(G.shape[0]):
+                for j in range(i+1,G.shape[1]):
+                    if (i,j) not in exclnSet:
+                        if lst:
+                            for k in range(lst.__len__()):
+                                if G[i,j] < G[lst[k][0],lst[k][1]]:
+                                    break
+                        else:
+                            k = 0
+                        lst.insert(k+1,(i,j))
+            return lst
+
+        instCompPath = {i:-1 for i in range(G.shape[0])}
+        edgeSet = flattenSortArray(G,exclnSet)
+
+        #Append inclusions and remove exclusions
+        treeMst = [edge for edge in inclnSet if not unionFind(instCompPath,edge)]
+
+        for edge in edgeSet:
+            if treeMst.__len__() < G.shape[0] - 1:
+                if not unionFind(instCompPath,edge):
+                    treeMst.append(edge)
+            else:
+                break
+
+        return treeMst
+
+    if type(G) == np.ndarray:
+        return kruskalsMst(G)
+
+def span1Tree(pivotVertex,G,inclnSet=[],exclnSet=[]):
+    '''
+    Core Procedure - modularizing for reusability
+    :param pivotVertex: proposed tour start and end node
+    :param G: Graph
+    :param inclnSet: edges to include in edgeSet
+    :param exclnSet: edges to exclude in edgeSet - overrides inclnSet
+    :return: edgeSet and cost
+    '''
+
+    tG = np.delete(G, pivotVertex, 0)
+    tG = np.delete(tG, pivotVertex, 1)
+    inclnSet = [(t[0] - int(t[0] >= pivotVertex), t[1] - int(t[1] >= pivotVertex)) for t in inclnSet]
+    exclnSet = [(t[0] - int(t[0] >= pivotVertex), t[1] - int(t[1] >= pivotVertex)) for t in exclnSet]
+    edgeSet = [(t[0] + int(t[0] >= pivotVertex), t[1] + int(t[1] >= pivotVertex)) for t in kruskalsTree(tG, inclnSet, exclnSet)]
+    edgeSet += [(pivotVertex, np.where(val == G[:, pivotVertex])[0][0]) for val in sorted(G[:, pivotVertex])[1:3]]
+    cost = sum(G[edge[0], edge[1]] for edge in edgeSet)
+    return edgeSet, cost
 
 def minSpan1Tree(G):
     '''
-    Min-Spanning 1 tree using kruskals algorithm
+    Min-Spanning 1-tree using kruskals algorithm
     :param G: Graph
     :return: mincost edge set for 1-tree with last two edges denoting appendix node edges
     '''
@@ -38,11 +116,7 @@ def minSpan1Tree(G):
     bestCost = np.inf
     bestEdgeSet = []
     for i in range(N):
-        tG = np.delete(G,i,0)
-        tG = np.delete(tG,i,1)
-        edgeSet = [(t[0]+int(t[0]>=i),t[1]+int(t[1]>=i)) for t in kruskalsTree(tG)]
-        edgeSet += [(i,np.where(val == G[:,i])[0][0]) for val in sorted(G[:,i])[1:3]]
-        currCost = sum(G[edge[0], edge[1]] for edge in edgeSet)
+        edgeSet, currCost = span1Tree(i,G[:,:])
         if currCost < bestCost:
             bestEdgeSet = edgeSet
             bestCost = currCost
@@ -56,7 +130,7 @@ def generate(G,edgeSet):
     :return: children edgesets using inclusion and exclusion sets
     '''
 
-    def chooseVertex(edgeSet):
+    def chooseVertex(edgeSet, initialVertex):
         '''
         Choose a vertex
         :param edgeSet: Parent subproblem
@@ -65,13 +139,32 @@ def generate(G,edgeSet):
 
         flattenedEdgeSet = [t for tup in edgeSet for t in tup]
         vrtxCard = {vrtx:flattenedEdgeSet.count(vrtx) for vrtx in flattenedEdgeSet}
+        vrtxCard.pop(initialVertex)
         return max(vrtxCard, key=lambda key: vrtxCard[key])
 
+    def getInclusionExclusion(G,edgeSet):
+        '''
+        Get inclusion and exclusion edge sets from candidate.
+        The idea for decomposing the problem is to re-inforce the complete tour requirement at that city,
+        making its degree two. This the edgeset, if has n edges must be reduced to at most two allowed and
+        n-2 prohibited
+        :param edgeSet: Candidate Set
+        :return: inclnSet, exclnSet
+        '''
+
+        candEdges = [edgeSet[edgeIndex] for edgeIndex in np.argsort([G[e[0],e[1]] for e in edgeSet]).tolist()[:3]]
+        for edge in candEdges:
+            localCopy = candEdges[:]
+            localCopy.remove(edge)
+            yield localCopy, [edge]
+
     cEdgeSet = []
-    vertex = chooseVertex(edgeSet)
-    principEdges = [edge for edge in edgeSet if vertex in edge]
-    for pEdge in principEdges:
-        cEdgeSet.append(kruskalsTree(G,principEdges,[pEdge]))
+    localEdge1, localEdge2 = edgeSet[-2:]
+    pivotVertex = [vertex for vertex in localEdge1 if vertex in localEdge2][0]
+    vertex = chooseVertex(edgeSet, pivotVertex)
+    principEdges = [edge for edge in edgeSet if vertex in edge and pivotVertex not in edge]
+    for inclnSet,exclnSet in getInclusionExclusion(G, principEdges):
+        cEdgeSet.append(span1Tree(pivotVertex,G.copy(),inclnSet,exclnSet))
     return cEdgeSet
 
 inst = tsp("burma14")
