@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.sparse.csgraph import minimum_spanning_tree, connected_components
 from instanceHandler import dynProgsTSP as tsp
 
 def kruskalsTree(G,inclnSet=[],exclnSet=[]):
@@ -172,12 +171,12 @@ def checkTermination(edgeSet):
     Check if a cyclic path found
     :param edgeSet: current subproblem edgeSet
     :return: True if cycle found and terminate, False otherwise
-             Also the average degree - if that makes sense?!?!?
+             Also the variation in degree - if that makes sense?!?!?
     '''
 
     flattenedEdgeSet = [t for tup in edgeSet for t in tup]
     vrtxCard = {vrtx: flattenedEdgeSet.count(vrtx) for vrtx in flattenedEdgeSet}
-    return all(value == 2 for value in vrtxCard.values()), sum(vrtxCard.values()) / vrtxCard.keys().__len__()
+    return all(value == 2 for value in vrtxCard.values()), sum((val - 2)**2 for val in vrtxCard.values()) / vrtxCard.keys().__len__()
 
 
 inst = tsp("burma14")
