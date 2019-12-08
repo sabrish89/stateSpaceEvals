@@ -126,7 +126,7 @@ def generate(G,edgeSet):
     Generate children for parent edgeSet with inclusion and exclusion edge sets
     :param G: Graph Matrix
     :param edgeSet: Parent subproblem
-    :return: children edgesets using inclusion and exclusion sets
+    :return: children edgesets, cost using inclusion and exclusion sets sorted ascending
     '''
 
     def chooseVertex(edgeSet, initialVertex):
@@ -141,29 +141,41 @@ def generate(G,edgeSet):
         vrtxCard.pop(initialVertex)
         return max(vrtxCard, key=lambda key: vrtxCard[key])
 
-    def getInclusionExclusion(G,edgeSet):
+    def getInclusionExclusion(G,edgeSet, parentEdgeSet):
         '''
         Get inclusion and exclusion edge sets from candidate.
         The idea for decomposing the problem is to re-inforce the complete tour requirement at that city,
         making its degree two. This the edgeset, if has n edges must be reduced to at most two allowed and
         n-2 prohibited
         :param edgeSet: Candidate Set
+        :param edgeSet: Parent Candidate Set
         :return: inclnSet, exclnSet
         '''
 
-        candEdges = [edgeSet[edgeIndex] for edgeIndex in np.argsort([G[e[0],e[1]] for e in edgeSet]).tolist()[:3]]
+        candEdges = [edgeSet[edgeIndex] for edgeIndex in np.argsort([G[e[0],e[1]] for e in edgeSet]).tolist()]
+        candPermEdges = candEdges[:3]
+        candExclEdges = candEdges[3:]
         for edge in candEdges:
-            localCopy = candEdges[:]
+            localCopy = candPermEdges[:]
             localCopy.remove(edge)
-            yield localCopy, [edge]
+            localCopy += [pedge for pedge in parentEdgeSet if pedge not in localCopy]
+            candExclEdges.append(edge)
+            yield localCopy, candExclEdges
 
     cEdgeSet = []
     localEdge1, localEdge2 = edgeSet[-2:]
     pivotVertex = [vertex for vertex in localEdge1 if vertex in localEdge2][0]
     vertex = chooseVertex(edgeSet, pivotVertex)
     principEdges = [edge for edge in edgeSet if vertex in edge and pivotVertex not in edge]
-    for inclnSet,exclnSet in getInclusionExclusion(G, principEdges):
-        cEdgeSet.append(span1Tree(pivotVertex,G.copy(),inclnSet,exclnSet))
+    for inclnSet,exclnSet in getInclusionExclusion(G, principEdges, edgeSet):
+        tempTree = span1Tree(pivotVertex, G.copy(), inclnSet, exclnSet)
+        if not cEdgeSet:
+            cEdgeSet.append(tempTree)
+        else:
+            for k in range(cEdgeSet.__len__()):
+                if cEdgeSet[k][1] > tempTree[1]:
+                    break
+            cEdgeSet.insert(k, tempTree)
     return cEdgeSet
 
 def checkTermination(edgeSet):
@@ -176,11 +188,13 @@ def checkTermination(edgeSet):
 
     flattenedEdgeSet = [t for tup in edgeSet for t in tup]
     vrtxCard = {vrtx: flattenedEdgeSet.count(vrtx) for vrtx in flattenedEdgeSet}
-    return all(value == 2 for value in vrtxCard.values()), sum((val - 2)**2 for val in vrtxCard.values()) / vrtxCard.keys().__len__()
+    return all(value == 2 for value in vrtxCard.values()), \
+           sum((val - 2)**2 for val in vrtxCard.values()) / vrtxCard.keys().__len__()
 
-
+'''
 inst = tsp("burma14")
 parentProblem = minSpan1Tree(inst.getCost())
-childrenProblems = generate(inst.getCost(),parentProblem)
+childrenProblems = generate(inst.getCost(), parentProblem)
 for child in childrenProblems:
-    print(checkTermination(child[0]),child)
+    print(child)
+'''
