@@ -24,6 +24,8 @@ class search(object):
         self.lowerBound = np.inf
         self.problemInstance = instance
         self.problemSolution = None
+        self.key1 = None
+        self.key2 = None
 
     def depthFirst(self, parentSet):
         '''
@@ -51,14 +53,17 @@ class search(object):
                     break
                 else:
                     childTemp = []
-                    childrenNodes = generate(self.problemInstance.getCost(), currentNode[0])
+                    childrenNodes = generate(self.problemInstance.getCost(), currentNode[0][:], self.key1, currentNode[2][:])
                     for child in childrenNodes:
-                        if child not in nodesToVisit:
+                        if child not in nodesToVisit and child[0].__len__() >= self.problemInstance.size:
                             childTemp.append(child)
                     nodesToVisit[0:0] = childTemp
 
 tspInstance = tsp("burma14")
 parentEdgeSet = minSpan1Tree(tspInstance.getCost())
+localEdge1, localEdge2 = parentEdgeSet[0][-2:]
+pivotVertex = [vertex for vertex in localEdge1 if vertex in localEdge2][0]
 searchInstance = search(tspInstance)
-searchInstance.depthFirst((parentEdgeSet,sum(tspInstance.getCost()[edge[0],edge[1]] for edge in parentEdgeSet)))
+searchInstance.key1 = pivotVertex #Use a key placeholder as pivotVertex for 1-tree
+searchInstance.depthFirst(parentEdgeSet)
 print(searchInstance.problemSolution,searchInstance.upperBound)

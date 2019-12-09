@@ -97,6 +97,9 @@ def span1Tree(pivotVertex,G,inclnSet=[],exclnSet=[]):
 
     tG = np.delete(G, pivotVertex, 0)
     tG = np.delete(tG, pivotVertex, 1)
+    #Remove pivotEdges from inclnSet
+    if inclnSet:
+        inclnSet = [edge for edge in inclnSet if pivotVertex not in edge]
     inclnSet = [(t[0] - int(t[0] >= pivotVertex), t[1] - int(t[1] >= pivotVertex)) for t in inclnSet]
     exclnSet = [(t[0] - int(t[0] >= pivotVertex), t[1] - int(t[1] >= pivotVertex)) for t in exclnSet]
     edgeSet = [(t[0] + int(t[0] >= pivotVertex), t[1] + int(t[1] >= pivotVertex)) for t in kruskalsTree(tG, inclnSet, exclnSet)]
@@ -119,13 +122,15 @@ def minSpan1Tree(G):
         if currCost < bestCost:
             bestEdgeSet = edgeSet
             bestCost = currCost
-    return bestEdgeSet
+    return (bestEdgeSet, bestCost, [])
 
-def generate(G,edgeSet):
+def generate(G,edgeSet, pivotVertex, notAllowedSet = []):
     '''
     Generate children for parent edgeSet with inclusion and exclusion edge sets
     :param G: Graph Matrix
     :param edgeSet: Parent subproblem
+    :param pivotVertex: 1-tree vertex
+    :param notAllowedSet: edges excluded from previous cuts or inherited from parent
     :return: children edgesets, cost using inclusion and exclusion sets sorted ascending
     '''
 
@@ -148,34 +153,37 @@ def generate(G,edgeSet):
         making its degree two. This the edgeset, if has n edges must be reduced to at most two allowed and
         n-2 prohibited
         :param edgeSet: Candidate Set
-        :param edgeSet: Parent Candidate Set
+        :param parentEdgeSet: Parent Candidate Set
         :return: inclnSet, exclnSet
         '''
 
         candEdges = [edgeSet[edgeIndex] for edgeIndex in np.argsort([G[e[0],e[1]] for e in edgeSet]).tolist()]
-        candPermEdges = candEdges[:3]
-        candExclEdges = candEdges[3:]
         for edge in candEdges:
-            localCopy = candPermEdges[:]
+            localCopy = parentEdgeSet
             localCopy.remove(edge)
-            localCopy += [pedge for pedge in parentEdgeSet if pedge not in localCopy]
-            candExclEdges.append(edge)
-            yield localCopy, candExclEdges
+            yield localCopy, [edge]
 
     cEdgeSet = []
-    localEdge1, localEdge2 = edgeSet[-2:]
-    pivotVertex = [vertex for vertex in localEdge1 if vertex in localEdge2][0]
     vertex = chooseVertex(edgeSet, pivotVertex)
     principEdges = [edge for edge in edgeSet if vertex in edge and pivotVertex not in edge]
     for inclnSet,exclnSet in getInclusionExclusion(G, principEdges, edgeSet):
+        if notAllowedSet: #inherit cuts
+            exclnSet += [edge for edge in notAllowedSet if edge not in exclnSet]
         tempTree = span1Tree(pivotVertex, G.copy(), inclnSet, exclnSet)
+        tempTree = (list(set(tempTree[0])),tempTree[1], exclnSet) #Buffer to enable def sort
         if not cEdgeSet:
             cEdgeSet.append(tempTree)
         else:
             for k in range(cEdgeSet.__len__()):
-                if cEdgeSet[k][1] > tempTree[1]:
+                if cEdgeSet[k][1] >= tempTree[1]:
+                    cEdgeSet.insert(k, tempTree)
                     break
-            cEdgeSet.insert(k, tempTree)
+                else:
+                    if k+1 >= cEdgeSet.__len__():
+                        cEdgeSet.append(tempTree)
+                        break
+                    else:
+                        continue
     return cEdgeSet
 
 def checkTermination(edgeSet):
@@ -191,10 +199,11 @@ def checkTermination(edgeSet):
     return all(value == 2 for value in vrtxCard.values()), \
            sum((val - 2)**2 for val in vrtxCard.values()) / vrtxCard.keys().__len__()
 
-'''
+
 inst = tsp("burma14")
 parentProblem = minSpan1Tree(inst.getCost())
-childrenProblems = generate(inst.getCost(), parentProblem)
+localEdge1, localEdge2 = parentProblem[0][-2:]
+pivotVertex = [vertex for vertex in localEdge1 if vertex in localEdge2][0]
+childrenProblems = generate(inst.getCost(), parentProblem[0], pivotVertex, parentProblem[2])
 for child in childrenProblems:
     print(child)
-'''
