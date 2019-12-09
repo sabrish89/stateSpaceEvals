@@ -199,7 +199,7 @@ def checkTermination(edgeSet):
     return all(value == 2 for value in vrtxCard.values()), \
            sum((val - 2)**2 for val in vrtxCard.values()) / vrtxCard.keys().__len__()
 
-
+'''
 inst = tsp("burma14")
 parentProblem = minSpan1Tree(inst.getCost())
 localEdge1, localEdge2 = parentProblem[0][-2:]
@@ -207,3 +207,4 @@ pivotVertex = [vertex for vertex in localEdge1 if vertex in localEdge2][0]
 childrenProblems = generate(inst.getCost(), parentProblem[0], pivotVertex, parentProblem[2])
 for child in childrenProblems:
     print(child)
+'''
