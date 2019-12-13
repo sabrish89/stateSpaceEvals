@@ -28,23 +28,12 @@ class search(object):
         self.key1 = None
         self.key2 = None
 
-    def depthFirst(self, parentSet):
+    def traverseGraphSimple(self, parentSet, best=True):
         '''
-        *Space complex depth first search*
-
-        depthFirst(root):
-            list nodes_to_visit = {root};
-            while( nodes_to_visit isn't empty ) {
-              currentNode = nodes_to_visit.take_out_first();
-              if( cost(currentNode) < u ) {
-                if( currentNode.checkTermination() ) {
-                  upperBound = currentNode.cost()
-                  bestSolution = currentNode
-                } else {
-                  nodes_to_visit.prepend( currentNode.generate().sort() );
-                }
-              }
-            }
+        Space complex graph traversal
+        :param parentSet: Root Node
+        :param best: True if best-first (a cost sorted breadth-first), False if depth-first
+        :return: your mother!!!nothing
         '''
         nodesToVisit = [parentSet]
         while nodesToVisit:
@@ -62,7 +51,10 @@ class search(object):
                         for child in childrenNodes:
                             if child not in nodesToVisit and child[0].__len__() >= self.problemInstance.size:
                                 childTemp.append(child)
-                        nodesToVisit[0:0] = childTemp
+                        if best:
+                            nodesToVisit[-1:-1] = childTemp
+                        else:
+                            nodesToVisit[0:0] = childTemp
 
     def recursiveBestFirst(self, parentSet):
         '''
