@@ -153,6 +153,7 @@ def generate(G,edgeSet, pivotVertex, notAllowedSet = []):
         Get inclusion and exclusion edge sets from candidate.
         The idea for decomposing the problem is to re-inforce the complete tour requirement at that city,
         making its degree two => n choose 2 children for n edges
+        TODO: Change code to reduce degree at each hub nodes down to two immediately
         :param edgeSet: Candidate Set
         :param parentEdgeSet: Parent Candidate Set
         :return: inclnSet, exclnSet
