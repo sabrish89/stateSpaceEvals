@@ -61,10 +61,12 @@ def kruskalsTree(G,inclnSet=[],exclnSet=[]):
                         if lst:
                             for k in range(lst.__len__()):
                                 if G[i,j] < G[lst[k][0],lst[k][1]]:
+                                    lst.insert(k, (i, j))
                                     break
+                            else:
+                                lst.append((i,j))
                         else:
-                            k = 0
-                        lst.insert(k+1,(i,j))
+                            lst.append((i,j))
             return lst
 
         instCompPath = {i:-1 for i in range(G.shape[0])}

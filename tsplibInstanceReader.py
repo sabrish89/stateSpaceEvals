@@ -189,7 +189,7 @@ def produce_matrix(filename):
     elif line.find("CEIL_2D") != -1:
         dist = distCEIL2D
     elif line.find("GEO") != -1:
-        print("geographic")
+        #print("geographic")
         dist = distGEO
     elif line.find("EXPLICIT") != -1:
         while line.find("EDGE_WEIGHT_FORMAT") == -1:
