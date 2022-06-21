@@ -1,4 +1,4 @@
 certifi==2019.9.11
-numpy==1.17.2
+numpy==1.22.0
 tqdm==4.36.1
 wincertstore==0.2
